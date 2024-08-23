@@ -1,11 +1,26 @@
-# 1. This tells docker to use the Rust official image
+# Используем оффициальный образ Node.js
+FROM node:21
+# Установим Playwright через npx
+RUN npx -y playwright@1.46.1 install --with-deps
+
+# Скопируем Playwright из предыдущего слоя
+COPY --from=node /node_modules /node_modules
+
+# Используем оффициальный образ Rust
 FROM rust:1.80.1
 
-# 2. Copy the files in your machine to the Docker image
+# Скопировать исходный код в контейнер
+WORKDIR /app
 COPY ./ ./
 
-# Build your program for release
+# Собрать Rust-приложение в режиме релиза
 RUN cargo build -r
 
-# Run the binary
-RUN cargo run -r
+# Указать рабочую директорию для финального запуска
+WORKDIR /app/target/release
+
+# Открыть нужный порт
+EXPOSE 65535
+
+# Запустить приложение
+CMD ["./playwright_test"]
